@@ -363,6 +363,13 @@ log_action_begin_msg "reloading ipables rules"
 sudo service ${SERVICE}-persistent reload &>> ${CWD}/netflix-proxy.log
 log_action_end_msg $?
 
+log_action_begin_msg "reloading tables for VPN routes"
+ip route flush table 128 &>> ${CWD}/netflix-proxy.log\
+ip rule add from $(ip route get 1 | grep -Po '(?<=src )(\S+)') table 128 &>> ${CWD}/netflix-proxy.log\
+ip route add table 128 to $(ip route get 1 | grep -Po '(?<=src )(\S+)')/32 dev $(ip -4 route ls | grep default | grep -Po '(?<=dev )(\S+)') &>> ${CWD}/netflix-proxy.log\
+ip route add table 128 default via $(ip -4 route ls | grep default | grep -Po '(?<=via )(\S+)') &>> ${CWD}/netflix-proxy.log\
+log_action_end_msg $?
+
 log_action_begin_msg "testing DNS"
 with_backoff $(which dig) -4\
   +time=${TIMEOUT} ${NETFLIX_HOST} @${EXTIP} &>> ${CWD}/netflix-proxy.log\

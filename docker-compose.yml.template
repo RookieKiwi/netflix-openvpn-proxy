@@ -1,12 +1,5 @@
 version: '2'
 
-networks:
-  nfbridge:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/24
-
 services:
 
   openvpn-client:
@@ -16,16 +9,13 @@ services:
       - NET_ADMIN
     restart: always
     build: .
-    ports:
-      - 1194:1194
-    networks:
-      nfbridge:
-        ipv4_address: 172.20.0.253
+    network_mode: host
     dns:
       - 1.1.1.1
       - 8.8.8.8
     volumes:
       - /etc/localtime:/etc/localtime:ro
+      - ./resolv.conf:/etc/resolv.conf
     environment:
       - OPENVPN_PROVIDER=surfshark
       - OPENVPN_USERNAME=username
@@ -42,24 +32,23 @@ services:
     image: andyshinn/dnsmasq:latest
     container_name: dnsmasq
     privileged: true
-    networks:
-      nfbridge:
-        ipv4_address: 172.20.0.2
+    network_mode: host
     cap_add:
       - NET_ADMIN
     volumes:
       - ./dnsmasq.conf:/etc/dnsmasq.conf:ro
+      - ./resolv.conf:/etc/resolv.conf
     restart: always
 
   dnsmasq-bogus-service:
     image: andyshinn/dnsmasq:latest
     container_name: dnsmasq-bogus
     privileged: true
-    networks:
-      nfbridge:
-        ipv4_address: 172.20.0.3
+    network_mode: host
     cap_add:
       - NET_ADMIN
+    volumes:
+      - ./resolv.conf:/etc/resolv.conf
     command: --port=5353 --log-facility=- -A /#/${EXTIP} -A /#/${EXTIP6}
     restart: always
 
@@ -67,14 +56,13 @@ services:
     image: abiosoft/caddy:latest
     container_name: caddy
     privileged: true
-    networks:
-      nfbridge:
-        ipv4_address: 172.20.0.4
+    network_mode: host
     cap_add:
       - NET_ADMIN
     volumes:
       - ./Caddyfile:/etc/Caddyfile
       - ./wwwroot:/srv
+      - ./resolv.conf:/etc/resolv.conf
     restart: always
   
   sniproxy-service:
@@ -83,11 +71,10 @@ services:
     build:
       context: docker-sniproxy
     privileged: true
-    networks:
-      nfbridge:
-        ipv4_address: 172.20.0.5
+    network_mode: host
     cap_add:
       - NET_ADMIN
     volumes:
       - ./docker-sniproxy/sniproxy.conf:/etc/sniproxy.conf
+      - ./resolv.conf:/etc/resolv.conf
     restart: always
