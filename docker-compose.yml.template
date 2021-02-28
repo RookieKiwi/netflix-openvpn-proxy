@@ -1,7 +1,7 @@
 version: '2'
 
 networks:
-  netflix-proxy_default:
+  nfbridge:
     driver: bridge
     ipam:
       config:
@@ -10,6 +10,7 @@ networks:
 services:
 
   openvpn-client:
+    container_name: openvpn-client
     image: jsloan117/docker-openvpn-client
     cap_add:
       - NET_ADMIN
@@ -18,7 +19,7 @@ services:
     ports:
       - 1194:1194
     networks:
-      netflix-proxy_default:
+      nfbridge:
         ipv4_address: 172.20.0.253
     dns:
       - 1.1.1.1
@@ -29,6 +30,7 @@ services:
       - OPENVPN_PROVIDER=surfshark
       - OPENVPN_USERNAME=username
       - OPENVPN_PASSWORD=password
+      - OPENVPN_CONFIG=au-syd_udp
       - OPENVPN_OPTS=--auth-nocache --inactive 3600 --ping 10 --ping-exit 60
       - HEALTH_CHECK_HOST=google.com
       - CREATE_TUN_DEVICE=true
@@ -41,7 +43,7 @@ services:
     container_name: dnsmasq
     privileged: true
     networks:
-      netflix-proxy_default:
+      nfbridge:
         ipv4_address: 172.20.0.2
     cap_add:
       - NET_ADMIN
@@ -54,7 +56,7 @@ services:
     container_name: dnsmasq-bogus
     privileged: true
     networks:
-      netflix-proxy_default:
+      nfbridge:
         ipv4_address: 172.20.0.3
     cap_add:
       - NET_ADMIN
@@ -66,7 +68,7 @@ services:
     container_name: caddy
     privileged: true
     networks:
-      netflix-proxy_default:
+      nfbridge:
         ipv4_address: 172.20.0.4
     cap_add:
       - NET_ADMIN
@@ -82,7 +84,7 @@ services:
       context: docker-sniproxy
     privileged: true
     networks:
-      netflix-proxy_default:
+      nfbridge:
         ipv4_address: 172.20.0.5
     cap_add:
       - NET_ADMIN
