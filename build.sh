@@ -325,7 +325,7 @@ log_action_end_msg $?
 if [[ "${DOCKER_BUILD}" == '1' ]]; then
     log_action_begin_msg "pulling and building docker containers from source"
     sudo $(which docker-compose) build &>> ${CWD}/netflix-proxy.log
-    for service in dnsmasq-service dnsmasq-bogus-service caddy-service; do
+    for service in openvpn-client dnsmasq-service dnsmasq-bogus-service caddy-service; do
         sudo $(which docker-compose) pull ${service} &>> ${CWD}/netflix-proxy.log
     done
     log_action_end_msg $?

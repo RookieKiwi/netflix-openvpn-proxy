@@ -1,11 +1,51 @@
 version: '2'
 
+networks:
+  netflix-proxy_default:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
 services:
+
+  openvpn-client:
+    image: jsloan117/docker-openvpn-client
+    cap_add:
+      - NET_ADMIN
+    restart: always
+    build: .
+    ports:
+      - 1194:1194
+    network_mode: bridge
+    networks:
+      netflix-proxy_default:
+        ipv4_address: 172.20.0.253
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - openvpn_data:/etc/openvpn
+    environment:
+      - OPENVPN_PROVIDER=surfshark
+      - OPENVPN_USERNAME=username
+      - OPENVPN_PASSWORD=password
+      - OPENVPN_OPTS=--auth-nocache --inactive 3600 --ping 10 --ping-exit 60
+      - HEALTH_CHECK_HOST=google.com
+      - CREATE_TUN_DEVICE=true
+    healthcheck:
+      test: ["CMD", "/etc/scripts/healthcheck.sh"]
+      interval: 5m
+
   dnsmasq-service:
     image: andyshinn/dnsmasq:latest
     container_name: dnsmasq
     privileged: true
-    network_mode: host
+    network_mode: bridge
+    networks:
+      netflix-proxy_default:
+        ipv4_address: 172.20.0.2
     cap_add:
       - NET_ADMIN
     volumes:
@@ -16,7 +56,10 @@ services:
     image: andyshinn/dnsmasq:latest
     container_name: dnsmasq-bogus
     privileged: true
-    network_mode: host
+    network_mode: bridge
+    networks:
+      netflix-proxy_default:
+        ipv4_address: 172.20.0.3
     cap_add:
       - NET_ADMIN
     command: --port=5353 --log-facility=- -A /#/${EXTIP} -A /#/${EXTIP6}
@@ -26,7 +69,10 @@ services:
     image: abiosoft/caddy:latest
     container_name: caddy
     privileged: true
-    network_mode: host
+    network_mode: bridge
+    networks:
+      netflix-proxy_default:
+        ipv4_address: 172.20.0.4
     cap_add:
       - NET_ADMIN
     volumes:
@@ -40,7 +86,10 @@ services:
     build:
       context: docker-sniproxy
     privileged: true
-    network_mode: host
+    network_mode: bridge
+    networks:
+      netflix-proxy_default:
+        ipv4_address: 172.20.0.5
     cap_add:
       - NET_ADMIN
     volumes:
