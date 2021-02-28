@@ -17,7 +17,6 @@ services:
     build: .
     ports:
       - 1194:1194
-    network_mode: bridge
     networks:
       netflix-proxy_default:
         ipv4_address: 172.20.0.253
@@ -26,7 +25,6 @@ services:
       - 8.8.8.8
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - openvpn_data:/etc/openvpn
     environment:
       - OPENVPN_PROVIDER=surfshark
       - OPENVPN_USERNAME=username
@@ -42,7 +40,6 @@ services:
     image: andyshinn/dnsmasq:latest
     container_name: dnsmasq
     privileged: true
-    network_mode: bridge
     networks:
       netflix-proxy_default:
         ipv4_address: 172.20.0.2
@@ -56,7 +53,6 @@ services:
     image: andyshinn/dnsmasq:latest
     container_name: dnsmasq-bogus
     privileged: true
-    network_mode: bridge
     networks:
       netflix-proxy_default:
         ipv4_address: 172.20.0.3
@@ -69,7 +65,6 @@ services:
     image: abiosoft/caddy:latest
     container_name: caddy
     privileged: true
-    network_mode: bridge
     networks:
       netflix-proxy_default:
         ipv4_address: 172.20.0.4
@@ -86,7 +81,6 @@ services:
     build:
       context: docker-sniproxy
     privileged: true
-    network_mode: bridge
     networks:
       netflix-proxy_default:
         ipv4_address: 172.20.0.5
