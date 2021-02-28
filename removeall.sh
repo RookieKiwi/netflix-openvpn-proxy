@@ -9,4 +9,3 @@ sudo docker container rm dnsmasq
 sudo docker container rm dnsmasq-bogus
 sudo docker container rm sniproxy
 sudo docker container rm openvpn-client
-sudo docker network rm netflix-proxy_nfbridge
