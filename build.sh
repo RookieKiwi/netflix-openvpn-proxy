@@ -1,7 +1,20 @@
 #!/usr/bin/env bash
 
+# external script for routing
+chmod +x route.sh
+chmod +x removeall.sh
+
 # bomb on any error
 set -e
+
+# check to make sure username etc has been added to YML file for openvpn
+if grep "**CHANGEME**" docker-compose.yml.template
+  then
+    echo "Please add username/password to docker-compose.yml.template for OpenVPN"
+    exit
+  else
+    echo "Username/Password found for OpenVPN, continuing with script"
+fi
 
 # globals
 CWD=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
@@ -363,14 +376,6 @@ log_action_begin_msg "reloading ipables rules"
 sudo service ${SERVICE}-persistent reload &>> ${CWD}/netflix-proxy.log
 log_action_end_msg $?
 
-log_action_begin_msg "re-routing traffic out VPN (can take awhile)"
-sleep 15
-ip route flush table 128
-ip rule add from ${EXTIP} table 128
-ip route add table 128 to ${EXTIP}/32 dev ${IFACE}
-ip route add table 128 default via $(ip -4 route ls | grep default | grep -Po '(?<=via )(\S+)')
-log_action_end_msg $?
-
 log_action_begin_msg "testing DNS"
 with_backoff $(which dig) -4\
   +time=${TIMEOUT} ${NETFLIX_HOST} @${EXTIP} &>> ${CWD}/netflix-proxy.log\
@@ -434,3 +439,5 @@ printf "Change your DNS to ${EXTIP} and start watching Netflix out of region.\n"
 
 printf "\e[33mNote\033[0m: get \e[1mhttp://unzoner.com\033[0m if your app/service no longer works with DNS based solutions.\n"
 printf "\e[32mDone.\033[0m\n"
+
+./route.sh

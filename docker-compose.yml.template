@@ -18,8 +18,8 @@ services:
       - ./resolv.conf:/etc/resolv.conf
     environment:
       - OPENVPN_PROVIDER=surfshark
-      - OPENVPN_USERNAME=username
-      - OPENVPN_PASSWORD=password
+      - OPENVPN_USERNAME=**CHANGEME**
+      - OPENVPN_PASSWORD=**CHANGEME**
       - OPENVPN_CONFIG=au-syd_udp
       - OPENVPN_OPTS=--auth-nocache --ping 10 --ping-exit 60
       - HEALTH_CHECK_HOST=google.com
